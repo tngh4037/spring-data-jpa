@@ -4,6 +4,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import study.data_jpa.dto.MemberDto;
@@ -42,5 +43,9 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
            countQuery = "select count(m.username) from Member m")
     Page<Member> findDivideCountByAge(int age, Pageable pageable); // countQuery 분리
 
+    // bulk update
+    @Modifying(clearAutomatically = true) // 이게 있어야 JPA 의 executeUpdate() 를 호출한다. ( 이게 없으면 getResultList() 나 getSingleList() 등을 호출한다. )
+    @Query("update Member m set m.age = m.age + 1 where m.age >= :age")
+    int bulkAgePlus(@Param("age") int age);
 
 }

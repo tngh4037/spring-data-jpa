@@ -1,5 +1,7 @@
 package study.data_jpa.repository;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -28,6 +30,7 @@ class MemberRepositoryTest {
 
     @Autowired TeamRepository teamRepository;
     @Autowired MemberRepository memberRepository;
+    @PersistenceContext EntityManager em; // 같은 트랜잭션이면 같은 EntityManager 가 불러와져서 동작한다.
 
     @Test
     public void testMember() {
@@ -252,4 +255,41 @@ class MemberRepositoryTest {
         Page<Member> page = memberRepository.findDivideCountByAge(age, pageRequest);
     }
 
+    @Test
+    public void bulkUpdate() {
+        // given
+        memberRepository.save(new Member("member1", 10));
+        memberRepository.save(new Member("member2", 19));
+        memberRepository.save(new Member("member3", 20));
+        memberRepository.save(new Member("member4", 21));
+        memberRepository.save(new Member("member5", 40));
+
+        // when
+        int resultCount = memberRepository.bulkAgePlus(20);
+        // em.flush(); // 참고) 같은 트랜잭션이면 같은 EntityManager 가 불러와 져서 동작한다.
+        // em.clear();
+
+        List<Member> result = memberRepository.findByUsername("member5");
+        System.out.println("member5 = " + result.get(0));
+
+        // then
+        assertThat(resultCount).isEqualTo(3);
+    }
 }
+
+// 참고)
+// 현재 1차 캐시에 다음과 같은 데이터가 있고,
+// ID: 1, name: memberA
+//
+// DB에 다음과 같은 데이터가 있을 때
+// ID: 1, name: memberB
+//
+// 예를 들어서 다음과 같은 JPQL을 실행하면
+// select m from member m where m.id = 1
+//
+// 우선 JPQL이기 때문에 DB에서 쿼리로 id:1, memberB 데이터를 조회합니다.
+// 그런데 1차 캐시에 이미 id:1 이라고, 식별자가 충돌이 됩니다.
+//
+// "JPA는 영속성 컨텍스트의 동일성을 보장합니다."
+//
+// -> 따라서 DB의 결과 값을 버리고, 1차 캐시에 있는 결과값을 반환합니다.
