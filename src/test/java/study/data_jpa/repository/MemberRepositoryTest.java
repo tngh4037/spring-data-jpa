@@ -3,6 +3,10 @@ package study.data_jpa.repository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
 import study.data_jpa.dto.MemberDto;
@@ -161,6 +165,91 @@ class MemberRepositoryTest {
 
         Optional<Member> memberOption = memberRepository.findOptionalByUsername("wdwdwdw");
         System.out.println("memberOption: " + memberOption);
+    }
+
+    @Test
+    public void paging() {
+        // given
+        memberRepository.save(new Member("member1", 10));
+        memberRepository.save(new Member("member2", 10));
+        memberRepository.save(new Member("member3", 10));
+        memberRepository.save(new Member("member4", 10));
+        memberRepository.save(new Member("member5", 10));
+
+        int age = 10;
+        PageRequest pageRequest = PageRequest.of(0, 3, Sort.by(Sort.Direction.DESC, "username"));
+
+        // when
+        Page<Member> page = memberRepository.findByAge(age, pageRequest); // 반환 타입을 Page 로 받으면, totalCount 쿼리도 같이 날린다.
+
+        Page<MemberDto> toMap = page.map(member -> new MemberDto(member.getId(), member.getUsername(), null)); // map 을 사용해서 내부 데이터를 다른 데이터로 전환할 수 있다.
+
+        // then
+        List<Member> content = page.getContent(); // 조회된 데이터
+        assertThat(content.size()).isEqualTo(3); // 조회된 데이터 수
+        assertThat(page.getTotalElements()).isEqualTo(5); // 전체 데이터 수 (totalCount)
+        assertThat(page.getNumber()).isEqualTo(0); // 현재 페이지 번호
+        assertThat(page.getTotalPages()).isEqualTo(2); // 전체 페이지 번호
+        assertThat(page.isFirst()).isTrue(); // 현재 페이지가 첫 번쨰 페이지인가?
+        assertThat(page.hasNext()).isTrue(); // 다음 페이지가 있는가?
+    }
+
+    @Test
+    public void slice() {
+        // given
+        memberRepository.save(new Member("member1", 10));
+        memberRepository.save(new Member("member2", 10));
+        memberRepository.save(new Member("member3", 10));
+        memberRepository.save(new Member("member4", 10));
+        memberRepository.save(new Member("member5", 10));
+
+        int age = 10;
+        PageRequest pageRequest = PageRequest.of(0, 3, Sort.by(Sort.Direction.DESC, "username"));
+
+        // when
+        Slice<Member> page = memberRepository.findSliceByAge(age, pageRequest); // 내부적으로 limit + 1 해서 0 ~ 4로 조회한다. (ex. 모바일 더보기)
+
+        // then
+        List<Member> content = page.getContent(); // 조회된 데이터
+        assertThat(content.size()).isEqualTo(3); // 조회된 데이터 수
+        assertThat(page.getNumber()).isEqualTo(0); // 현재 페이지 번호
+        assertThat(page.isFirst()).isTrue(); // 현재 페이지가 첫 번쨰 페이지인가?
+        assertThat(page.hasNext()).isTrue(); // 다음 페이지가 있는가?
+    }
+
+    @Test
+    public void list() {
+        // given
+        memberRepository.save(new Member("member1", 10));
+        memberRepository.save(new Member("member2", 10));
+        memberRepository.save(new Member("member3", 10));
+        memberRepository.save(new Member("member4", 10));
+        memberRepository.save(new Member("member5", 10));
+
+        int age = 10;
+        PageRequest pageRequest = PageRequest.of(0, 3, Sort.by(Sort.Direction.DESC, "username"));
+
+        // when
+        List<Member> page = memberRepository.findListByAge(age, pageRequest); // 그다음 페이지가 있고 없고 그런거 몰라도 되고, 그냥 내가 정한 데이터만 가져오고 싶은 경우 ( limit + 1 이런거 안함 )
+
+        // then
+        assertThat(page.size()).isEqualTo(3);
+    }
+
+    @Test
+    public void divideCount() {
+        // given
+        memberRepository.save(new Member("member1", 10));
+        memberRepository.save(new Member("member2", 10));
+        memberRepository.save(new Member("member3", 10));
+        memberRepository.save(new Member("member4", 10));
+        memberRepository.save(new Member("member5", 10));
+
+        int age = 10;
+        PageRequest pageRequest = PageRequest.of(0, 3, Sort.by(Sort.Direction.DESC, "username")); // 참고로 실무를 하다보면 정렬 조건이 굉장히 복잡할 때가 있다. 그러면 Sort 로는 적용하기에 한계가 있다. 그런 경우 @Query 에 직접 작성하자.
+
+        // when
+        Page<Member> page = memberRepository.findDivideCountByAge(age, pageRequest);
     }
 
 }
