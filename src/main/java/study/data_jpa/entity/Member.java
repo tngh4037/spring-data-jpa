@@ -7,6 +7,10 @@ import lombok.*;
 @Getter @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED) // = protected Member() {}
 @ToString(of = {"id", "username", "age"}) // team 은 적으면 안된다. 서로 참조하고 있기 때문에 무한루프가 걸릴 수 있다. 따라서 가급적이면 연관관계 필드는 toString 에서 제외하는 게 좋다.
+@NamedQuery(
+        name="Member.findByUsername",
+        query="select m from Member m where m.username = :username"
+)
 public class Member {
 
     @Id
