@@ -55,4 +55,23 @@ public class MemberJpaRepository {
                 .getResultList();
     }
 
+    // 데이터 조회: 몇 번째 부터 몇 개의 데이터를 조회할지 작성
+    public List<Member> findByPage(int age, int offset, int limit) {
+        return em.createQuery(
+                "select m from Member m " +
+                        "where m.age = :age " +
+                        "order by m.username desc", Member.class)
+                .setParameter("age", age)
+                .setFirstResult(offset) // 몇 번째부터
+                .setMaxResults(limit) // 몇 개 가져올것인가?
+                .getResultList();
+    }
+
+    // 전체 갯수 조회: 현재 내 페이지가 전체 페이지 중에서 몇 번째 페이지인지 등 계산하기 위해 필요
+    public long totalCount(int age) {
+        return em.createQuery("select count(m) from Member m where m.age = :age", Long.class)
+                .setParameter("age", age)
+                .getSingleResult();
+    }
+
 }
