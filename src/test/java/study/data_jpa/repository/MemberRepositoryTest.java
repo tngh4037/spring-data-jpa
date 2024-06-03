@@ -335,6 +335,10 @@ class MemberRepositoryTest {
         List<Member> findMember = memberRepository.findLockByUsername("member1"); // select for update ( 참고. dialect 에 따라 동작방식이 달라질 수 있다. 만약 적용해야 한다면 매뉴얼 등을 확인해서 적용하자. )
     }
 
+    @Test
+    public void callCustom() {
+        List<Member> result = memberRepository.findMemberCustom();
+    }
 }
 
 // 참고)
