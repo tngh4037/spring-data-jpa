@@ -307,6 +307,34 @@ class MemberRepositoryTest {
             System.out.println("member.team = " + member.getTeam().getName()); // occurred N+1 (처음에 쿼리를 하나 날렸는데, 그 결과로 반환된 갯수(N) 만큼 쿼리가 추가로 수행되는 것)
         }
     }
+
+    @Test
+    public void queryHint() {
+        // given
+        Member member1 = new Member("member1", 10);
+        memberRepository.save(member1);
+        em.flush();
+        em.clear();
+
+        // when
+        Member findMember = memberRepository.findReadOnlyByUsername("member1");
+        findMember.setUsername("member2");
+
+        em.flush(); // 업데이트 되지 x
+    }
+
+    @Test
+    public void lock() {
+        // given
+        Member member1 = new Member("member1", 10);
+        memberRepository.save(member1);
+        em.flush();
+        em.clear();
+
+        // when
+        List<Member> findMember = memberRepository.findLockByUsername("member1"); // select for update ( 참고. dialect 에 따라 동작방식이 달라질 수 있다. 만약 적용해야 한다면 매뉴얼 등을 확인해서 적용하자. )
+    }
+
 }
 
 // 참고)
