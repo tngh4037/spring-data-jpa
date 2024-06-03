@@ -11,6 +11,10 @@ import lombok.*;
         name="Member.findByUsername",
         query="select m from Member m where m.username = :username"
 )
+@NamedEntityGraph(
+        name = "Member.all",
+        attributeNodes = @NamedAttributeNode("team")
+)
 public class Member {
 
     @Id
@@ -20,7 +24,7 @@ public class Member {
     private String username;
     private int age;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY) // 지연로딩으로 설정했다. 따라서, Member 조회 시에 team 은 조회되지 않는다. 그리고 이때 team 필드에는 null 이 아닌, 프록시 객체를 넣어둔다. 이후 team 의 어떤 데이터를 사용하기 위해 메서드 등을 호출하면, 그 시점에, 그때 team 을 조회하는 SQL 이 별도로 날라간다. 그리고 그 결과를 채운다. (프록시 초기화)
     @JoinColumn(name = "team_id")
     private Team team;
 

@@ -275,6 +275,38 @@ class MemberRepositoryTest {
         // then
         assertThat(resultCount).isEqualTo(3);
     }
+
+    @Test
+    public void findMemberLazy() {
+        // given
+        // member1 -> teamA 참조
+        // member2 -> teamB 참조
+        Team teamA = new Team("teamA");
+        Team teamB = new Team("teamB");
+        teamRepository.save(teamA);
+        teamRepository.save(teamB);
+        Member member1 = new Member("member1", 10, teamA);
+        Member member2 = new Member("member2", 10, teamB);
+        memberRepository.save(member1);
+        memberRepository.save(member2);
+
+        // 영속성 컨텍스트에 있는 캐시 정보들을 DB에 반영하고, 영속성 컨텍스트를 초기화한다.
+        em.flush();
+        em.clear();
+
+        // when
+        // List<Member> members = memberRepository.findAll(); // occurred N+1
+        // List<Member> members = memberRepository.findMemberFetchJoin(); // resolve: JPA - fetch join
+        // List<Member> members = memberRepository.findAll(); // resolve: spring data JPA - @EntityGraph
+
+        List<Member> members = memberRepository.findEntityGraphByUsername("member1");
+
+        for (Member member : members) {
+            System.out.println("member = " + member.getUsername());
+            System.out.println("member.teamClass = " + member.getTeam().getClass());
+            System.out.println("member.team = " + member.getTeam().getName()); // occurred N+1 (처음에 쿼리를 하나 날렸는데, 그 결과로 반환된 갯수(N) 만큼 쿼리가 추가로 수행되는 것)
+        }
+    }
 }
 
 // 참고)
