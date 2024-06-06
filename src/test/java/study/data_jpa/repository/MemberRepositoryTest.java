@@ -5,10 +5,7 @@ import jakarta.persistence.PersistenceContext;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Slice;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
@@ -359,8 +356,44 @@ class MemberRepositoryTest {
         Specification<Member> spec = MemberSpec.username("m1").and(MemberSpec.teamName("teamA"));
         List<Member> result = memberRepository.findAll(spec);
 
+        // then
         assertThat(result.size()).isEqualTo(1);
     }
+
+    @Test
+    public void queryByExample() {
+        // given
+        Team teamA = new Team("teamA");
+        em.persist(teamA);
+
+        Member m1 = new Member("m1", 0, teamA);
+        Member m2 = new Member("m2", 0, teamA);
+        em.persist(m1);
+        em.persist(m2);
+
+        em.flush();
+        em.clear();
+
+        // when
+        // Probe
+        Member member = new Member("m1"); // 엔티티 자체가 검색 조건이 된다.
+        Team team = new Team("teamA");
+        member.setTeam(team);
+
+        ExampleMatcher exampleMatcher =
+                ExampleMatcher.matching().withIgnorePaths("age");// age 라는 속성은 무시하겠다.
+
+        Example<Member> example = Example.of(member, exampleMatcher); // exampleMatcher 가 없으면 age 도 검색 조건으로 적용된다. ( 값이 null 이면 검색 조건으로 적용되지 않지만, primitive type 인 age 는 인스턴스화하면 값이 0이기 떄문에 검색조건에 0으로 걸린다. )
+
+        List<Member> result = memberRepository.findAll(example);
+
+        assertThat(result.size()).isEqualTo(1);
+        assertThat(result.get(0).getUsername()).isEqualTo("m1");
+
+        // 참고) QueryByExample 한계
+        // - 조인은 가능하지만 내부 조인(INNER JOIN)만 가능함 외부 조인(LEFT JOIN) 안됨
+    }
+
 }
 
 // 참고)
