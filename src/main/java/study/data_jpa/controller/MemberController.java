@@ -30,17 +30,17 @@ public class MemberController {
 
     @GetMapping("/members2/{id}")
     public String findMember2(@PathVariable("id") Member member) { // HTTP 요청은 회원 id 를 받지만 도메인 클래스 컨버터가 중간에 동작해서 회원 엔티티 객체를 반환한다. ( 도메인 클래스 컨버터도 리파지토리를 사용해서 엔티티를 찾는다. )
-        return member.getUsername();
-    }
-
-    @GetMapping("/members")
-    public Page<Member> list(Pageable pageable) { // Pageable 이 있으면 PageRequest 라는 객체를 생성하고 HTTP 파라미터 값을 채워서 주입해준다.
         // 참고)
         // 도메인 클래스 컨버터로 엔티티를 파라미터로 받으면, 이 엔티티는 단순 조회용으로만 사용해야 한다.
         // ( 트랜잭션이 없는 범위에서 엔티티를 조회했으므로, 엔티티를 변경해도 DB에 반영되지 않는다. )
         //
         // 참고)
         // 김영한님은 이런 기능의 사용은 아주 간단한 경우가 아니라면 권장하지는 않는다고 한다.
+        return member.getUsername();
+    }
+
+    @GetMapping("/members")
+    public Page<Member> list(Pageable pageable) { // Pageable 이 있으면 PageRequest 라는 객체를 생성하고 HTTP 파라미터 값을 채워서 주입해준다.
         Page<Member> page = memberRepository.findAll(pageable);
         return page;
     }

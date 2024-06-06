@@ -13,7 +13,7 @@ import study.data_jpa.entity.Member;
 import java.util.List;
 import java.util.Optional;
 
-public interface MemberRepository extends JpaRepository<Member, Long>, MemberRepositoryCustom {
+public interface MemberRepository extends JpaRepository<Member, Long>, MemberRepositoryCustom, JpaSpecificationExecutor<Member> {
     List<Member> findByUsernameAndAgeGreaterThan(String username, int age);
 
     // @Query(name = "Member.findByUsername") // 주석 처리해도 동작한다. => 우선순위: 1) "엔티티.메서드명" 으로된 NamedQuery 를 먼저 찾는다. 있으면 실행하고, 없으면 2) 메소드 이름을 분석해서 JPQL을 생성하고 실행한다.
