@@ -394,6 +394,48 @@ class MemberRepositoryTest {
         // - 조인은 가능하지만 내부 조인(INNER JOIN)만 가능함 외부 조인(LEFT JOIN) 안됨
     }
 
+    @Test
+    public void projections() {
+        // given
+        Team teamA = new Team("teamA");
+        em.persist(teamA);
+
+        Member m1 = new Member("m1", 0, teamA);
+        Member m2 = new Member("m2", 0, teamA);
+        em.persist(m1);
+        em.persist(m2);
+
+        em.flush();
+        em.clear();
+
+        // when
+        // List<UsernameOnly> result = memberRepository.findProjectionsInterfaceByUsername("m1"); // 스프링 데이터 JPA 가 프록시 기술을 사용해서 구현체를 만들고 ( 인터페이스 내부 메서드 등을 참고해서, 담아야할 데이터만 담아서 ) 반환한다.
+        // for (UsernameOnly usernameOnly : result) {
+        //     System.out.println("usernameOnly = " + usernameOnly);
+        //     System.out.println("usernameOnly.getUsername() = " + usernameOnly.getUsername());
+        // }
+
+        // List<UsernameOnlyDto> result = memberRepository.findProjectionsClassByUsername("m1");
+        // for (UsernameOnlyDto UsernameOnlyDto : result) {
+        //     System.out.println("UsernameOnlyDto = " + UsernameOnlyDto);
+        //     System.out.println("UsernameOnlyDto.getUsername() = " + UsernameOnlyDto.getUsername());
+        // }
+
+        // List<UsernameOnlyDto> result = memberRepository.findProjectionsByUsername("m1", UsernameOnlyDto.class);
+        // for (UsernameOnlyDto UsernameOnlyDto : result) {
+        //     System.out.println("UsernameOnlyDto = " + UsernameOnlyDto);
+        //     System.out.println("UsernameOnlyDto.getUsername() = " + UsernameOnlyDto.getUsername());
+        // }
+
+        List<NestedClosedProjections> result = memberRepository.findProjectionsByUsername("m1", NestedClosedProjections.class);
+        for (NestedClosedProjections nestedClosedProjections : result) {
+            System.out.println("nestedClosedProjections = " + nestedClosedProjections);
+            System.out.println("nestedClosedProjections.getUsername() = " + nestedClosedProjections.getUsername());
+            System.out.println("nestedClosedProjections.getTeam().getName() = " + nestedClosedProjections.getTeam().getName());
+        }
+
+    }
+
 }
 
 // 참고)
