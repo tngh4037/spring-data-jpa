@@ -4,6 +4,7 @@ spring:
     username: sa
     password:
     driver-class-name: org.h2.Driver
+
   jpa:
     hibernate:
       ddl-auto: create
@@ -12,6 +13,13 @@ spring:
         format_sql: true # 쿼리가 한줄로 쭉 나오는게 아니라 포맷팅되어 이쁘게 나오도록 해준다.
         # show_sql: true
         # dialect: org.hibernate.dialect.MySQL8Dialect # (실무) 사용하는 데이터베이스에 맞는 방언을 넣어줘야 한다.
+
+  data:
+    web:
+      pageable:
+        default-page-size: 10
+        max-page-size: 2000
+
 logging:
   level:
     org.hibernate.SQL: debug
